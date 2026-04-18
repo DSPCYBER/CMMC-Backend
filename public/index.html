@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Free CMMC Readiness Assessment — DSP Cyber Security</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red:      #DC2626;
+      --red-dim:  #991b1b;
+      --dark:     #0a0d12;
+      --panel:    #10151d;
+      --card:     #141b26;
+      --card-hi:  #192033;
+      --border:   #1e2a3a;
+      --border-hi:#2e4060;
+      --muted:    #8aaec8;
+      --text:     #ddeeff;
+      --white:    #f0f6ff;
+      --gold:     #f59e0b;
+      --green:    #16a34a;
+      --green-bg: #052e16;
+      --amber:    #d97706;
+      --amber-bg: #1c1100;
+      --font-head:'Barlow Condensed', sans-serif;
+      --font-body:'Barlow', sans-serif;
+    }
+
+    body {
+      background: var(--dark);
+      font-family: var(--font-body);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    #cmmc-root {
+      background: var(--dark);
+      min-height: 100vh;
+      padding: 4rem 1.5rem 5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #cmmc-root::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.25;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #cmmc-root::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--red), var(--red-dim), transparent);
+      z-index: 10;
+    }
+
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    input[type=text], input[type=email], select, textarea {
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 14px;
+      padding: 9px 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--border-hi); }
+    select option { background: var(--panel); }
+    ::placeholder { color: var(--muted); opacity: 0.6; }
+
+    .btn-primary {
+      width: 100%;
+      padding: 12px 0;
+      background: var(--red);
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      font-family: var(--font-head);
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--red-dim); }
+    .btn-primary:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+
+    .btn-outline {
+      width: 100%;
+      padding: 11px 0;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      font-family: var(--font-head);
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-outline:hover { border-color: var(--border-hi); color: var(--text); }
+
+    .progress-track { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 2rem; }
+    .progress-fill  { height: 3px; background: linear-gradient(90deg, var(--red-dim), var(--red)); border-radius: 2px; transition: width 0.4s; }
+
+    .dsp-card { background: var(--card); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: var(--font-head);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 0.6rem;
+    }
+    .section-label::before, .section-label::after {
+      content: '';
+      display: block;
+      width: 20px; height: 1px;
+      background: var(--red);
+    }
+
+    .field-label {
+      display: block;
+      font-family: var(--font-head);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .domain-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 14px 16px;
+      transition: border-color 0.2s;
+    }
+    .domain-card.done { border-color: #16a34a; }
+
+    .score-green { color: #4ade80; }
+    .score-amber { color: var(--gold); }
+    .score-red   { color: var(--red); }
+
+    .badge-green { background: var(--green-bg); color: #4ade80; border: 1px solid #16a34a; }
+    .badge-amber { background: var(--amber-bg); color: var(--gold); border: 1px solid var(--amber); }
+    .badge-red   { background: #1a0505; color: #f87171; border: 1px solid var(--red); }
+
+    .status-badge {
+      font-family: var(--font-head);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 2px;
+    }
+
+    .red-bar { height: 3px; background: linear-gradient(90deg, var(--red-dim), var(--red)); }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 44px; height: 44px;
+      border: 2px solid var(--border);
+      border-top: 2px solid var(--red);
+      border-radius: 50%;
+      margin: 0 auto 24px;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .level-option {
+      padding: 16px 20px;
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+      background: var(--card);
+      transition: all 0.15s;
+      position: relative;
+      margin-bottom: 12px;
+    }
+    .level-option.selected {
+      border-color: var(--red);
+      background: var(--card-hi);
+    }
+    .level-option-bar {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--red-dim), var(--red));
+    }
+    .level-option.selected .level-option-bar { display: block; }
+
+    .ssp-toggle-content { display: none; border-top: 1px solid var(--border); }
+    .ssp-toggle-content.open { display: block; }
+  </style>
+</head>
+<body>
+<div id="cmmc-root">
+  <div class="wrap" id="app"></div>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────
+const VERCEL_URL = "https://cmmc-backend.vercel.app";
+// ────────────────────────────────────────────────────────
+
+// ── APP STATE ───────────────────────────────────────────
+const state = {
+  step: 1,
+  companyInfo: { name: "", size: "", contractType: "", handlesCUI: "" },
+  level: "",
+  answers: {},
+  report: null,
+  error: "",
+  contactName: "",
+  contactEmail: "",
+  agreed: false,
+  sspOpen: false
+};
+
+const L1_DOMAINS = [
+  { code:"AC", name:"Access Control", desc:"Who can access your systems and data — and how that access is managed and limited.", placeholder:"e.g., We use Active Directory with individual accounts. Admins have separate admin-only accounts. Access is role-based. Accounts disabled same day when someone leaves." },
+  { code:"IA", name:"Identification & Authentication", desc:"How users prove who they are before accessing systems, files, or applications.", placeholder:"e.g., Unique passwords with complexity requirements. MFA required for email and VPN. Accounts lock after 5 failed attempts. No shared credentials used." },
+  { code:"MP", name:"Media Protection", desc:"How you handle USB drives, laptops, hard drives, and printed documents containing sensitive data.", placeholder:"e.g., USB drives blocked via Group Policy. Laptops use BitLocker. Printed CUI in locked cabinet and cross-shredded when disposed." },
+  { code:"PE", name:"Physical Protection", desc:"How you control who can physically enter your facilities and access your equipment.", placeholder:"e.g., Key fob entry required. Visitors sign in and are escorted. Server in locked closet. Cameras at entry points retained 30 days." },
+  { code:"SC", name:"System & Communications Protection", desc:"How you protect data as it moves across your networks and between systems.", placeholder:"e.g., Business-grade firewall in place. Remote employees use VPN only. Email encrypted in transit. Guest WiFi isolated on separate VLAN." },
+  { code:"SI", name:"System & Information Integrity", desc:"How you protect against malware, keep systems patched, and monitor for threats.", placeholder:"e.g., Microsoft Defender on all endpoints. Windows updates within 30 days. M365 filters spam and malicious links. IT reviews alerts weekly." }
+];
+
+const L2_EXTRA = [
+  { code:"AU", name:"Audit & Accountability", desc:"How you log system events and who reviews those logs.", placeholder:"e.g., Windows event logging enabled. 90-day log retention. IT reviews M365 audit logs monthly. No dedicated SIEM currently." },
+  { code:"CM", name:"Configuration Management", desc:"How you manage hardware/software inventories and control changes to systems.", placeholder:"e.g., Asset inventory in spreadsheet. Software installs require IT approval. Standard baseline on new workstations. Change log maintained." },
+  { code:"IR", name:"Incident Response", desc:"What your plan is when a security incident or breach occurs.", placeholder:"e.g., Written IR plan reviewed annually. Staff know to report to IT immediately. Cyber insurance in place. No tabletop exercises yet." },
+  { code:"MA", name:"Maintenance", desc:"How system maintenance is performed, especially remote maintenance.", placeholder:"e.g., IT uses approved remote management tool. Sessions logged. On-site maintenance requires advance notice. No unauthorized remote tools." },
+  { code:"PS", name:"Personnel Security", desc:"How you screen employees and manage access when they leave.", placeholder:"e.g., Background checks for CUI-access staff. Accounts disabled same day on termination. Formal offboarding checklist. NDAs signed at hire." },
+  { code:"RA", name:"Risk Assessment", desc:"How you identify, evaluate, and track cybersecurity risks.", placeholder:"e.g., No formal risk assessment yet. IT flags issues as they arise. Working on a risk register. No vulnerability scanning in place yet." },
+  { code:"CA", name:"Security Assessment", desc:"How you evaluate and document your security controls.", placeholder:"e.g., No formal SSP yet. Working with consultant. No pen testing completed. Maintain informal list of security practices." },
+  { code:"AT", name:"Awareness & Training", desc:"How you train employees on cybersecurity threats and their responsibilities.", placeholder:"e.g., Security briefing at hire. One phishing simulation last year. No formal annual training. Staff know to report suspicious emails." }
+];
+
+const MAX_SCORE = { L1: 17, L2: 110 };
+
+function getDomains() {
+  return state.level === "L1" ? L1_DOMAINS : [...L1_DOMAINS, ...L2_EXTRA];
+}
+
+function scorePct(s, level) { return Math.round((s / MAX_SCORE[level]) * 100); }
+function scoreClass(s, level) { const p = scorePct(s, level); return p >= 70 ? "green" : p >= 40 ? "amber" : "red"; }
+function scoreColor(s, level) { const c = scoreClass(s, level); return c === "green" ? "#4ade80" : c === "amber" ? "#f59e0b" : "#f87171"; }
+function statusLabel(s) { return s === "compliant" ? "Compliant" : s === "partial" ? "Partial" : "Gap"; }
+
+// ── RENDER ───────────────────────────────────────────────
+function render() {
+  const app = document.getElementById("app");
+  switch (state.step) {
+    case 1: app.innerHTML = renderStep1(); bindStep1(); break;
+    case 2: app.innerHTML = renderStep2(); bindStep2(); break;
+    case 3: app.innerHTML = renderStep3(); bindStep3(); break;
+    case 4: app.innerHTML = renderLoading(); break;
+    case 5: app.innerHTML = renderReport(); bindReport(); break;
+  }
+}
+
+// ── STEP 1 ───────────────────────────────────────────────
+function renderStep1() {
+  const i = state.companyInfo;
+  const valid = i.name.trim() && i.size && i.contractType && i.handlesCUI && state.agreed;
+  return `
+    <div>
+      <div class="section-label">DSP Cyber Security LLC</div>
+      <h1 style="font-family:var(--font-head);font-size:clamp(2rem,5vw,3rem);font-weight:800;text-transform:uppercase;letter-spacing:0.02em;color:var(--white);line-height:1.05;margin-bottom:0.5rem">
+        CMMC Readiness <span style="color:var(--red)">Assessment</span>
+      </h1>
+      <p style="color:var(--muted);font-size:1rem;margin-bottom:2.5rem;line-height:1.7">
+        AI-powered gap analysis for DoD contractors. Takes 10 minutes — get your readiness score, identified gaps, and SSP starter language instantly.
+      </p>
+      <div class="dsp-card" style="margin-bottom:1.5rem">
+        <div class="red-bar"></div>
+        <div style="padding:1.75rem 2rem">
+          <p style="font-family:var(--font-head);font-size:0.75rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:1.25rem">Step 1 of 4 — Company Information</p>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div>
+              <label class="field-label">Company name</label>
+              <input type="text" id="s1-name" value="${escHtml(i.name)}" placeholder="Acme Defense Contractors LLC" />
+            </div>
+            <div class="two-col">
+              <div>
+                <label class="field-label">Employee count</label>
+                <select id="s1-size">
+                  <option value="">Select...</option>
+                  ${["1–10","11–50","51–150","151–500","500+"].map(o=>`<option${i.size===o?" selected":""}>${o}</option>`).join("")}
+                </select>
+              </div>
+              <div>
+                <label class="field-label">Handle CUI?</label>
+                <select id="s1-cui">
+                  <option value="">Select...</option>
+                  ${["Yes — regularly","Yes — occasionally","No — FCI only","Unsure"].map(o=>`<option${i.handlesCUI===o?" selected":""}>${o}</option>`).join("")}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="field-label">Primary contract type</label>
+              <select id="s1-contract">
+                <option value="">Select...</option>
+                ${["Prime contractor (direct DoD contract)","Subcontractor (to a prime)","Both prime and sub","Supplier / vendor to defense primes"].map(o=>`<option${i.contractType===o?" selected":""}>${o}</option>`).join("")}
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:24px;padding:14px 16px;background:var(--panel);border:1px solid var(--border);border-radius:3px">
+            <p style="font-family:var(--font-head);font-size:0.72rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--red);margin-bottom:8px">Privacy Notice</p>
+            <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.65">
+              Your responses are processed by Anthropic Claude (third-party AI) to generate this report.
+              <strong style="color:var(--text)"> Do not enter specific system names, IP addresses, vendor credentials, or any Controlled Unclassified Information (CUI).</strong>
+              Describe practices in general terms only. This tool is a preliminary self-assessment — not a formal CMMC evaluation. — DSP Cyber Security LLC
+            </p>
+            <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">
+              <input type="checkbox" id="s1-agree" ${state.agreed?"checked":""} style="width:auto;margin-top:2px;accent-color:var(--red);flex-shrink:0" />
+              <span style="font-size:12px;color:var(--muted);line-height:1.6">I understand my responses will be processed by a third-party AI service and I will not include CUI, credentials, or sensitive technical details.</span>
+            </label>
+          </div>
+          <button class="btn-primary" id="s1-next" style="margin-top:20px" ${valid?"":"disabled"}>Continue →</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function bindStep1() {
+  const nameEl = document.getElementById("s1-name");
+  const sizeEl = document.getElementById("s1-size");
+  const cuiEl  = document.getElementById("s1-cui");
+  const ctEl   = document.getElementById("s1-contract");
+  const agreeEl= document.getElementById("s1-agree");
+  const nextEl = document.getElementById("s1-next");
+
+  function sync() {
+    state.companyInfo.name         = nameEl.value;
+    state.companyInfo.size         = sizeEl.value;
+    state.companyInfo.handlesCUI   = cuiEl.value;
+    state.companyInfo.contractType = ctEl.value;
+    state.agreed                   = agreeEl.checked;
+    const valid = state.companyInfo.name.trim() && state.companyInfo.size && state.companyInfo.contractType && state.companyInfo.handlesCUI && state.agreed;
+    nextEl.disabled = !valid;
+  }
+
+  [nameEl, sizeEl, cuiEl, ctEl].forEach(el => el.addEventListener("input", sync));
+  agreeEl.addEventListener("change", sync);
+  nextEl.addEventListener("click", () => { state.step = 2; render(); });
+}
+
+// ── STEP 2 ───────────────────────────────────────────────
+function renderStep2() {
+  const opts = [
+    { val:"L1", title:"Level 1 — Foundational", sub:"17 practices across 6 domains. Required for contracts with FCI (Federal Contract Information) but no CUI.", badge:"6 domains" },
+    { val:"L2", title:"Level 2 — Advanced",     sub:"110 practices across 14 domains. Required for contracts involving CUI (Controlled Unclassified Information).", badge:"14 domains" }
+  ];
+  return `
+    <div>
+      <div class="dsp-card" style="margin-bottom:1.5rem">
+        <div class="red-bar"></div>
+        <div style="padding:1.75rem 2rem">
+          <p style="font-family:var(--font-head);font-size:0.75rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:1rem">Step 2 of 4 — CMMC Level</p>
+          <h2 style="font-family:var(--font-head);font-size:1.8rem;font-weight:800;text-transform:uppercase;color:var(--white);margin-bottom:6px">Which level are you targeting?</h2>
+          <p style="color:var(--muted);font-size:0.95rem;margin-bottom:20px;line-height:1.6">Check your DoD contract or ask your prime contractor if you're unsure.</p>
+          <div style="margin-bottom:20px">
+            ${opts.map(o => `
+              <div class="level-option${state.level===o.val?" selected":""}" data-val="${o.val}">
+                <div class="level-option-bar"></div>
+                <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                  <div>
+                    <p style="font-family:var(--font-head);font-weight:800;font-size:1.15rem;text-transform:uppercase;letter-spacing:0.03em;color:var(--white);margin-bottom:4px">${o.title}</p>
+                    <p style="font-size:13px;color:var(--muted);line-height:1.5">${o.sub}</p>
+                  </div>
+                  <span style="font-size:11px;background:var(--panel);border:1px solid var(--border);border-radius:2px;padding:3px 8px;color:var(--muted);white-space:nowrap;margin-left:12px;font-family:var(--font-head);letter-spacing:0.08em;text-transform:uppercase">${o.badge}</span>
+                </div>
+              </div>`).join("")}
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn-outline" id="s2-back" style="flex:1">← Back</button>
+            <button class="btn-primary" id="s2-next" style="flex:2" ${state.level?"":"disabled"}>Start Assessment →</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function bindStep2() {
+  document.querySelectorAll(".level-option").forEach(el => {
+    el.addEventListener("click", () => {
+      state.level = el.dataset.val;
+      document.querySelectorAll(".level-option").forEach(e => e.classList.remove("selected"));
+      el.classList.add("selected");
+      el.querySelector(".level-option-bar").style.display = "block";
+      document.getElementById("s2-next").disabled = false;
+    });
+  });
+  document.getElementById("s2-back").addEventListener("click", () => { state.step = 1; render(); });
+  document.getElementById("s2-next").addEventListener("click", () => {
+    if (state.level) { state.step = 3; render(); }
+  });
+}
+
+// ── STEP 3 ───────────────────────────────────────────────
+function renderStep3() {
+  const domains = getDomains();
+  const filled = domains.filter(d => (state.answers[d.code]||"").trim().length > 15).length;
+  const pct = Math.round((filled / domains.length) * 100);
+  const canSubmit = filled >= Math.ceil(domains.length * 0.5);
+
+  return `
+    <div>
+      <div class="dsp-card" style="margin-bottom:1.5rem">
+        <div class="red-bar"></div>
+        <div style="padding:1.75rem 2rem 1.25rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <p style="font-family:var(--font-head);font-size:0.75rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--red)">Step 3 of 4 — Domain Assessment</p>
+            <span style="font-family:var(--font-head);font-size:0.75rem;font-weight:700;letter-spacing:0.1em;color:var(--muted);text-transform:uppercase">${filled}/${domains.length} Completed</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <h2 style="font-family:var(--font-head);font-size:1.8rem;font-weight:800;text-transform:uppercase;color:var(--white);margin-bottom:6px">Describe Your Current Practices</h2>
+          <p style="color:var(--muted);font-size:0.95rem;margin-bottom:20px;line-height:1.6">For each domain, describe what you have in place — tools, policies, processes, or known gaps. More detail means a more accurate and actionable report.</p>
+
+          ${state.error ? `<div style="padding:10px 14px;background:#1a0505;border:1px solid var(--red);border-radius:3px;font-size:13px;color:#f87171;margin-bottom:16px">${escHtml(state.error)}</div>` : ""}
+
+          <div style="display:flex;flex-direction:column;gap:12px">
+            ${domains.map(d => {
+              const val = state.answers[d.code] || "";
+              const ok = val.trim().length > 15;
+              return `
+                <div class="domain-card${ok?" done":""}">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <span style="font-family:var(--font-head);font-size:0.65rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;background:var(--panel);border:1px solid var(--border);border-radius:2px;padding:2px 7px;color:var(--red)">${d.code}</span>
+                      <span style="font-family:var(--font-head);font-weight:700;font-size:1rem;text-transform:uppercase;letter-spacing:0.04em;color:var(--white)">${d.name}</span>
+                    </div>
+                    ${ok ? `<span style="color:#4ade80;font-size:14px;font-weight:700">✓</span>` : ""}
+                  </div>
+                  <p style="font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.5">${d.desc}</p>
+                  <textarea data-code="${d.code}" rows="3" placeholder="${escHtml(d.placeholder)}" style="resize:vertical;line-height:1.6">${escHtml(val)}</textarea>
+                </div>`;
+            }).join("")}
+          </div>
+
+          <div style="margin-top:20px;padding:16px 18px;background:var(--panel);border:1px solid var(--border);border-radius:3px">
+            <p style="font-family:var(--font-head);font-size:0.72rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--red);margin-bottom:4px">Where Should We Send Your Report?</p>
+            <p style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">Optional — enter your name and email to receive a follow-up copy and CMMC compliance tips from DSP Cyber Security. No spam, unsubscribe anytime.</p>
+            <div class="two-col">
+              <div>
+                <label class="field-label">First name</label>
+                <input type="text" id="s3-cname" value="${escHtml(state.contactName)}" placeholder="John" />
+              </div>
+              <div>
+                <label class="field-label">Work email</label>
+                <input type="email" id="s3-email" value="${escHtml(state.contactEmail)}" placeholder="john@company.com" />
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:16px">
+            <button class="btn-outline" id="s3-back" style="flex:1">← Back</button>
+            <button class="btn-primary" id="s3-submit" style="flex:2" ${canSubmit?"":"disabled"}>Generate My Report →</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function bindStep3() {
+  const domains = getDomains();
+
+  // Live textarea sync — preserve scroll position
+  document.querySelectorAll("textarea[data-code]").forEach(el => {
+    el.addEventListener("input", () => {
+      const code = el.dataset.code;
+      state.answers[code] = el.value;
+      const ok = el.value.trim().length > 15;
+      const card = el.closest(".domain-card");
+      card.classList.toggle("done", ok);
+      // Update checkmark inline
+      const check = card.querySelector(".check-icon");
+      if (ok && !check) {
+        const headerRight = card.querySelector(".header-right");
+        if (headerRight) {
+          const span = document.createElement("span");
+          span.className = "check-icon";
+          span.style.cssText = "color:#4ade80;font-size:14px;font-weight:700";
+          span.textContent = "✓";
+          headerRight.appendChild(span);
+        }
+      } else if (!ok && check) {
+        check.remove();
+      }
+      // Update counter + submit button
+      const filled = domains.filter(d => (state.answers[d.code]||"").trim().length > 15).length;
+      const pct = Math.round((filled / domains.length) * 100);
+      const counter = document.querySelector("[data-filled-counter]");
+      if (counter) counter.textContent = `${filled}/${domains.length} Completed`;
+      const bar = document.querySelector(".progress-fill");
+      if (bar) bar.style.width = pct + "%";
+      const btn = document.getElementById("s3-submit");
+      if (btn) btn.disabled = filled < Math.ceil(domains.length * 0.5);
+    });
+  });
+
+  document.getElementById("s3-cname").addEventListener("input", e => { state.contactName = e.target.value; });
+  document.getElementById("s3-email").addEventListener("input", e => { state.contactEmail = e.target.value; });
+  document.getElementById("s3-back").addEventListener("click", () => { state.step = 2; render(); });
+  document.getElementById("s3-submit").addEventListener("click", generateReport);
+}
+
+// ── LOADING ──────────────────────────────────────────────
+function renderLoading() {
+  return `
+    <div style="max-width:420px;margin:80px auto;text-align:center">
+      <div class="spinner"></div>
+      <h2 style="font-family:var(--font-head);font-size:1.8rem;font-weight:800;text-transform:uppercase;color:var(--white);margin-bottom:8px">Analyzing Your Responses...</h2>
+      <p style="color:var(--muted);font-size:0.95rem;line-height:1.7">Claude is reviewing your security practices against CMMC requirements and building your readiness report.</p>
+    </div>`;
+}
+
+// ── GENERATE REPORT ──────────────────────────────────────
+async function generateReport() {
+  state.step = 4;
+  state.error = "";
+  render();
+
+  const domains = getDomains();
+  const domainText = domains.map(d => `**${d.name} (${d.code})**: ${state.answers[d.code] || "No information provided"}`).join("\n\n");
+  const maxScore = MAX_SCORE[state.level];
+  const leadStr = state.contactName
+    ? state.contactName + (state.contactEmail ? ` (${state.contactEmail})` : "")
+    : "";
+
+  const prompt = `You are a CMMC compliance expert. Analyze this DoD contractor's security practices and return ONLY valid JSON (no markdown, no backticks, no preamble).
+
+Company: ${state.companyInfo.name}
+Size: ${state.companyInfo.size} employees
+Contract type: ${state.companyInfo.contractType}
+Handles CUI: ${state.companyInfo.handlesCUI}
+Targeting: CMMC ${state.level}
+Scoring: overall_score is out of ${maxScore} (${state.level==="L2"?"110 practices per NIST SP 800-171":"17 practices per FAR 52.204-21"}). Domain scores are percentages 0-100.
+
+Current security practices by domain:
+${domainText}
+
+Return this exact JSON:
+{"lead":"${leadStr}","overall_score":<0-${maxScore}>,"executive_summary":"<2-3 sentence plain English summary>","domains":[{"code":"<code>","name":"<n>","score":<0-100>,"status":"<compliant|partial|non-compliant>","gaps":["<gap>"],"recommendations":["<action>"]}],"top_priorities":["<p1>","<p2>","<p3>","<p4>","<p5>"],"ssp_sections":[{"code":"<code>","narrative":"<2-3 sentence SSP-ready narrative>"}]}`;
+
+  try {
+    const res = await fetch(VERCEL_URL + "/api/generate-report", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt })
+    });
+
+    // Capture raw response text first for diagnostics
+    const rawText = await res.text();
+    console.log("Vercel response status:", res.status);
+    console.log("Vercel raw response:", rawText);
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${rawText.slice(0, 300)}`);
+    }
+
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch(parseErr) {
+      throw new Error(`Bad JSON from server: ${rawText.slice(0, 300)}`);
+    }
+
+    const text = data.content?.find(b => b.type === "text")?.text || "";
+    if (!text) throw new Error(`No text content in response. Keys: ${Object.keys(data).join(", ")}`);
+
+    const clean = text.replace(/```json|```/g, "").trim();
+    state.report = JSON.parse(clean);
+    state.step = 5;
+    render();
+  } catch (e) {
+    console.error("Report generation error:", e);
+    state.error = "Error: " + e.message;
+    state.step = 3;
+    render();
+  }
+}
+
+// ── REPORT ───────────────────────────────────────────────
+function renderReport() {
+  const r = state.report;
+  const level = state.level;
+  const company = state.companyInfo;
+  const s = r.overall_score;
+  const maxScore = MAX_SCORE[level];
+  const pct = scorePct(s, level);
+  const cls = scoreClass(s, level);
+  const clr = scoreColor(s, level);
+  const readinessLabel = pct >= 70 ? "Likely Ready" : pct >= 40 ? "Needs Work" : "Significant Gaps";
+  const leadStr = r.lead ? ` · ${r.lead}` : "";
+
+  const domainsWithGaps = r.domains.filter(d => d.gaps && d.gaps.length > 0);
+
+  return `
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
+        <div>
+          <div class="section-label">DSP Cyber Security LLC</div>
+          <h2 style="font-family:var(--font-head);font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;text-transform:uppercase;color:var(--white);line-height:1.05">${escHtml(company.name)}</h2>
+          <p style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:4px">CMMC ${level} Readiness Report${leadStr}</p>
+        </div>
+        <button class="btn-outline" id="r-restart" style="width:auto;padding:7px 16px;font-size:0.75rem">Start Over</button>
+      </div>
+
+      <!-- Score card -->
+      <div class="dsp-card" style="margin-bottom:20px;border-color:${clr}">
+        <div style="height:3px;background:linear-gradient(90deg,transparent,${clr})"></div>
+        <div style="display:grid;grid-template-columns:auto 1fr">
+          <div style="padding:24px 28px;border-right:1px solid var(--border);text-align:center;min-width:140px">
+            <div style="font-family:var(--font-head);font-size:56px;font-weight:800;line-height:1;color:${clr}">${s}</div>
+            <div style="font-family:var(--font-head);font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:4px">out of ${maxScore}</div>
+            <div style="margin-top:10px;font-family:var(--font-head);font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:4px 12px;border-radius:2px;display:inline-block;background:${clr}22;color:${clr};border:1px solid ${clr}">${readinessLabel}</div>
+          </div>
+          <div style="padding:24px">
+            <p style="font-size:0.95rem;color:var(--text);line-height:1.75">${escHtml(r.executive_summary)}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Domain scores -->
+      <p style="font-family:var(--font-head);font-size:0.75rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--red);margin-bottom:12px">— Domain Scores</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;margin-bottom:28px">
+        ${r.domains.map(d => {
+          const dc = scoreClass(d.score, level);
+          const dclr = scoreColor(d.score, level);
+          return `
+            <div class="dsp-card" style="padding:12px 14px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <span style="font-family:var(--font-head);font-size:0.65rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--red)">${d.code}</span>
+                <span class="status-badge badge-${dc}">${statusLabel(d.status)}</span>
+              </div>
+              <p style="font-family:var(--font-head);font-weight:700;font-size:0.95rem;text-transform:uppercase;letter-spacing:0.03em;color:var(--white);margin-bottom:8px;line-height:1.2">${d.name}</p>
+              <div style="height:3px;background:var(--border);border-radius:2px;margin-bottom:5px">
+                <div style="height:3px;width:${d.score}%;background:${dclr};border-radius:2px"></div>
+              </div>
+              <p style="font-family:var(--font-head);font-size:0.8rem;font-weight:700;color:${dclr}">${d.score}%</p>
+            </div>`;
+        }).join("")}
+      </div>
+
+      <!-- Top priorities -->
+      <p style="font-family:var(--font-head);font-size:0.75rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--red);margin-bottom:12px">— Top Priorities</p>
+      <div class="dsp-card" style="margin-bottom:28px">
+        ${r.top_priorities.map((p, i) => `
+          <div style="display:flex;gap:16px;padding:13px 18px;${i < r.top_priorities.length - 1 ? "border-bottom:1px solid var(--border)" : ""};align-items:flex-start">
+            <span style="font-family:var(--font-head);font-size:1rem;font-weight:800;color:var(--red);min-width:20px">${i+1}</span>
+            <span style="font-size:0.9rem;color:var(--text);line-height:1.6">${escHtml(p)}</span>
+          </div>`).join("")}
+      </div>
+
+      <!-- Gaps by domain -->
+      <p style="font-family:var(--font-head);font-size:0.75rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--red);margin-bottom:12px">— Identified Gaps By Domain</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px">
+        ${domainsWithGaps.map(d => {
+          const dclr = scoreColor(d.score, level);
+          return `
+            <div class="dsp-card" style="padding:14px 18px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <span style="font-family:var(--font-head);font-weight:800;font-size:1.05rem;text-transform:uppercase;letter-spacing:0.04em;color:var(--white)">${d.name}</span>
+                <span style="font-family:var(--font-head);font-size:0.7rem;font-weight:700;letter-spacing:0.1em;padding:3px 8px;border-radius:2px;background:${dclr}22;color:${dclr};border:1px solid ${dclr}">${Math.round(d.score)}%</span>
+              </div>
+              ${d.gaps.map(g => `
+                <div style="display:flex;gap:10px;margin-bottom:6px;align-items:flex-start">
+                  <span style="color:var(--red);font-weight:700;flex-shrink:0;line-height:1.5">—</span>
+                  <span style="font-size:0.88rem;color:var(--muted);line-height:1.6">${escHtml(g)}</span>
+                </div>`).join("")}
+            </div>`;
+        }).join("")}
+      </div>
+
+      <!-- SSP toggle -->
+      <div class="dsp-card" style="margin-bottom:28px">
+        <button id="ssp-toggle" style="width:100%;padding:14px 18px;background:transparent;border:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-family:var(--font-head);font-size:1.05rem;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;color:var(--white)">SSP Starter Narratives</span>
+          <span id="ssp-toggle-label" style="font-family:var(--font-head);font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)">${state.sspOpen ? "Hide ↑" : "Show ↓"}</span>
+        </button>
+        <div id="ssp-content" class="ssp-toggle-content${state.sspOpen ? " open" : ""}">
+          ${r.ssp_sections ? r.ssp_sections.map((sec, i) => `
+            <div style="padding:14px 18px;${i < r.ssp_sections.length - 1 ? "border-bottom:1px solid var(--border)" : ""}">
+              <p style="font-family:var(--font-head);font-size:0.7rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--red);margin-bottom:6px">${sec.code}</p>
+              <p style="font-size:0.9rem;color:var(--text);line-height:1.75">${escHtml(sec.narrative)}</p>
+            </div>`).join("") : ""}
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div style="background:var(--card);border:1px solid var(--red);border-radius:4px;padding:2rem;text-align:center;margin-bottom:20px;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--red-dim),var(--red))"></div>
+        <p style="font-family:var(--font-head);font-size:0.75rem;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Ready to close your gaps?</p>
+        <h3 style="font-family:var(--font-head);font-size:clamp(1.4rem,3vw,2rem);font-weight:800;text-transform:uppercase;letter-spacing:0.02em;color:var(--white);margin-bottom:8px;line-height:1.1">Schedule a Free Scoping Call<br/><span style="color:var(--red)">With DSP Cyber Security</span></h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin:0 auto 20px;line-height:1.7;max-width:480px">We specialize in getting DoD contractors to CMMC compliance — faster and without the guesswork. CISM · CISA · CRISC · CMMC CCP</p>
+        <a href="https://dspcybersecurity.com/contact-us-1" target="_blank" rel="noopener noreferrer"
+          style="display:inline-block;background:var(--red);color:#fff;padding:13px 32px;border-radius:3px;font-family:var(--font-head);font-size:1.1rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none">
+          Book My Free Scoping Call →
+        </a>
+      </div>
+      <p style="font-size:0.78rem;color:var(--muted);line-height:1.6;text-align:center;opacity:0.7">This assessment is AI-generated based on information provided and is not a substitute for a formal CMMC assessment by a certified C3PAO or RPO. — DSP Cyber Security LLC</p>
+    </div>`;
+}
+
+function bindReport() {
+  document.getElementById("r-restart").addEventListener("click", () => {
+    state.step = 1;
+    state.report = null;
+    state.answers = {};
+    state.level = "";
+    state.companyInfo = { name:"", size:"", contractType:"", handlesCUI:"" };
+    state.contactName = "";
+    state.contactEmail = "";
+    state.agreed = false;
+    state.sspOpen = false;
+    render();
+  });
+  document.getElementById("ssp-toggle").addEventListener("click", () => {
+    state.sspOpen = !state.sspOpen;
+    document.getElementById("ssp-content").classList.toggle("open", state.sspOpen);
+    document.getElementById("ssp-toggle-label").textContent = state.sspOpen ? "Hide ↑" : "Show ↓";
+  });
+}
+
+// ── UTILS ────────────────────────────────────────────────
+function escHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+// ── BOOT ─────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
